@@ -511,6 +511,18 @@ class Uri implements UriInterface
     }
 
     /**
+     * Get last segment from path
+     *
+     * @return string
+     */
+    public function getLastSegment()
+    {
+        $segments = explode('/', trim($this->getPath(), '/')) + [''];
+
+        return array_pop($segments);
+    }
+
+    /**
      * getQueryParams
      *
      * @return array
@@ -520,6 +532,26 @@ class Uri implements UriInterface
         parse_str($this->data['query']);
 
         return get_defined_vars();
+    }
+
+    /**
+     * @param string $name Param name
+     *
+     * @return mixed
+     */
+    public function getQueryParam(string $name)
+    {
+        return $this->getQueryParams()[$name] ?? null;
+    }
+
+    /**
+     * @param string $name Param name
+     *
+     * @return bool
+     */
+    public function hasQueryParam(string $name)
+    {
+        return array_key_exists($name, $this->getQueryParams());
     }
 
     /**
