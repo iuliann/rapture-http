@@ -126,7 +126,7 @@ class Request implements ServerRequestInterface
 
         foreach ($input as $key => $value) {
             if (substr($key, 0, 5) == 'HTTP_') {
-                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($key, 5)))))] = explode(',', $value);
+                $headers[strtolower(str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($key, 5))))))] = explode(',', $value);
             }
         }
 
@@ -263,8 +263,8 @@ class Request implements ServerRequestInterface
      */
     public function getHeader($name)
     {
-        return isset($this->headers[$name])
-            ? $this->headers[$name]
+        return isset($this->headers[strtolower($name)])
+            ? $this->headers[strtolower($name)]
             : [];
     }
 
@@ -1061,22 +1061,27 @@ class Request implements ServerRequestInterface
      */
     public function getInputParams()
     {
-        return $this->post + $this->query + $this->files;
+        $input = $this->getInput();
+        $type  = array_flip($this->getHeader('content-type'));
+        if (isset($type['application/json'])) {
+            return json_decode($input, true);
+        }
+        else if (isset($type['application/x-www-form-urlencoded'])) {
+            parse_str($input, $params);
+            return $params;
+        }
+
+        return [$input];
     }
 
     /**
-     * Search through all input globals
-     *
-     * @param string $name    Key name
-     * @param mixed  $default Default value if not found
+     * Get PHP input
      *
      * @return mixed
      */
-    public function getInput($name, $default = null)
+    public function getInput()
     {
-        $input = $this->getInputParams();
-
-        return isset($input[$name]) ? $input[$name] : $default;
+        return file_get_contents('php://input');
     }
 
     /**
