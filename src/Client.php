@@ -97,7 +97,7 @@ class Client implements HttpClientInterface
             /** @var Request $request */
             $body = $request->getParsedBody();
             if ($body) {
-                $options[CURLOPT_POSTFIELDS] = (string)http_build_query($body);
+                $options[CURLOPT_POSTFIELDS] = is_array($body) ? http_build_query($body) : $body;
             }
         }
 
@@ -156,17 +156,15 @@ class Client implements HttpClientInterface
             }
 
             if ('content-length' === $header) {
-                $values = [0];
+                $value = 0;
                 if (array_key_exists(CURLOPT_POSTFIELDS, $options)) {
-                    $values = [strlen($options[CURLOPT_POSTFIELDS])];
+                    $value = strlen($options[CURLOPT_POSTFIELDS]);
                 }
             } else {
-                $values = $request->getHeader($name);
+                $value = $request->getHeaderLine($name);
             }
 
-            foreach ((array)$values as $value) {
-                $curlHeaders[] = $name . ': ' . $value;
-            }
+            $curlHeaders[] = $name . ': ' . $value;
         }
 
         /*
