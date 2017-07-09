@@ -80,7 +80,7 @@ class Request implements ServerRequestInterface
 
         $this->uri = $uri ?: new Uri('/');
         $this->method = $method;
-        $this->headers = $headers + self::parseHeaders($this->server);
+        $this->headers = self::parseHeaders($headers) + self::parseHeaders($this->server);
         $this->version = $version;
         $this->attributes = $attributes;
     }
@@ -126,7 +126,10 @@ class Request implements ServerRequestInterface
 
         foreach ($input as $key => $value) {
             if (substr($key, 0, 5) == 'HTTP_') {
-                $headers[strtolower(str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($key, 5))))))] = explode(',', $value);
+                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($key, 5)))))] = explode(',', $value);
+            }
+            else {
+                $headers[$key] = is_string($value) ? explode(',', $value) : (array)$value;
             }
         }
 
@@ -263,9 +266,13 @@ class Request implements ServerRequestInterface
      */
     public function getHeader($name)
     {
-        return isset($this->headers[strtolower($name)])
-            ? $this->headers[strtolower($name)]
-            : [];
+        foreach ($this->headers as $header => $value) {
+            if (strtolower($header) == strtolower($name)) {
+                return $value;
+            }
+        }
+
+        return [];
     }
 
     /**
@@ -693,6 +700,10 @@ class Request implements ServerRequestInterface
      */
     public function getParsedBody()
     {
+        if ($this->getBody()->getSize()) {
+            return (string)$this->getBody();
+        }
+
         if ($this->getMethod() == self::METHOD_POST) {
             return $this->getPostParams();
         }
@@ -960,6 +971,16 @@ class Request implements ServerRequestInterface
     public function isSecure():bool
     {
         return $this->uri->getScheme() === 'https';
+    }
+
+    /**
+     * isJson
+     *
+     * @return bool
+     */
+    public function isJson():bool
+    {
+        return in_array('application/json', $this->getHeader('content-type'));
     }
 
     /**
