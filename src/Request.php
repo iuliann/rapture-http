@@ -95,7 +95,7 @@ class Request implements ServerRequestInterface
         $queryPos = strpos($_SERVER['REQUEST_URI'], '?');
 
         $url = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://')
-            . $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT']
+            . ($_SERVER['SERVER_NAME'] ?: 'localhost') . ':' . $_SERVER['SERVER_PORT']
             . substr($_SERVER['REQUEST_URI'], 0, $queryPos)
             . substr($_SERVER['REQUEST_URI'], $queryPos);
 
@@ -700,15 +700,11 @@ class Request implements ServerRequestInterface
      */
     public function getParsedBody()
     {
-        if ($this->getBody()->getSize()) {
+        if ($this->getBody() && $this->getBody()->getSize()) {
             return (string)$this->getBody();
         }
 
-        if ($this->getMethod() == self::METHOD_POST) {
-            return $this->getPostParams();
-        }
-
-        return [];
+        return $this->getPostParams() ?: $this->getInputParams();
     }
 
     /**
@@ -1092,7 +1088,7 @@ class Request implements ServerRequestInterface
             return $params;
         }
 
-        return [$input];
+        return $input ? [$input] : [];
     }
 
     /**

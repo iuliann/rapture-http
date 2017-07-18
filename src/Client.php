@@ -44,7 +44,6 @@ class Client implements HttpClientInterface
         }
 
         $response = new Response();
-
         curl_setopt_array($this->handler, $this->getCurlOptions($request, $response) + $this->options + $this->getDefaultOptions());
 //        curl_exec($this->handler); // todo find a fix
         $response->getBody()->write(curl_exec($this->handler));
@@ -97,7 +96,12 @@ class Client implements HttpClientInterface
             /** @var Request $request */
             $body = $request->getParsedBody();
             if ($body) {
-                $options[CURLOPT_POSTFIELDS] = is_array($body) ? http_build_query($body) : $body;
+                if ($request->getHeaderLine('content-type') == 'application/json') {
+                    $options[CURLOPT_POSTFIELDS] = is_array($body) ? json_encode($body) : $body;
+                }
+                else {
+                    $options[CURLOPT_POSTFIELDS] = is_array($body) ? http_build_query($body) : $body;
+                }
             }
         }
 
@@ -124,9 +128,9 @@ class Client implements HttpClientInterface
         };
 
         // todo find a fix
-//        $options[CURLOPT_WRITEFUNCTION] = function ($ch, $data) use (&$response) {
-//            return (int)$response->getBody()->write($data);
-//        };
+        $options[CURLOPT_WRITEFUNCTION] = function ($ch, $data) use (&$response) {
+            return (int)$response->getBody()->write($data);
+        };
 
         return $options;
     }
