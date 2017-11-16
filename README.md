@@ -14,7 +14,7 @@ Rapture HTTP is a [PSR-7](http://www.php-fig.org/psr/psr-7/) implementation libr
 ## Install
 
 ```
-composer require iuliann/rapture-http
+composer require mrjulio/rapture-http
 ```
 
 ## Quick start
