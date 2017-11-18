@@ -95,7 +95,7 @@ class Request implements ServerRequestInterface
         $queryPos = strpos($_SERVER['REQUEST_URI'], '?');
 
         $url = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://')
-            . $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT']
+            . ($_SERVER['SERVER_NAME'] ? $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] : $_SERVER['HTTP_HOST'])
             . substr($_SERVER['REQUEST_URI'], 0, $queryPos)
             . substr($_SERVER['REQUEST_URI'], $queryPos);
 
